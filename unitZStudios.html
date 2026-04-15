@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIT Z STUDIOS | OFF SMASH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --bg: #000; 
+            --text-white: #ffffff; 
+            --text-gray: #b0b0b0;
+            --meta-gray: #555555;
+            --border-line: rgba(255, 255, 255, 0.1);
+            --grid-unit: rgba(255, 255, 255, 0.02);
+        }
+
+        /* --- BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
+        img { pointer-events: none; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .grid-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--grid-unit) 1px, transparent 1px), linear-gradient(90deg, var(--grid-unit) 1px, transparent 1px);
+            background-size: 80px 80px; z-index: -1;
+        }
+
+        /* --- EFECTO BLUR SUPERIOR --- */
+        .top-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* --- LOADING --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .intro-brand { width: 80px; opacity: 0; transform: scale(0.9); animation: introPulse 2.5s forwards; }
+        @keyframes introPulse { 40% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.05); } }
+
+        /* --- NAV --- */
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 45px 6%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; opacity: 0; transition: 1s ease 1.8s;
+        }
+        nav.visible { opacity: 1; }
+        .nav-logo { width: 75px; }
+        .lang-switch {
+            font-family: 'JetBrains Mono'; font-size: 10px; color: var(--meta-gray);
+            border: 1px solid var(--border-line); padding: 10px 20px; cursor: pointer;
+            transition: 0.3s; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .lang-switch:hover { border-color: #fff; color: #fff; }
+
+        /* --- HERO & 3D --- */
+        #hero { 
+            height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            perspective: 1200px;
+        }
+        .logo-3d-wrapper { 
+            position: relative; 
+            transform-style: preserve-3d; 
+            will-change: transform; 
+            transition: transform 0.1s ease-out;
+        }
+        
+        .glow-fx {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateZ(-50px);
+            width: 140%; height: 140%; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            filter: blur(80px); z-index: -1;
+        }
+        .hero-logo { 
+            width: 700px; max-width: 85vw; 
+            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
+            transform: translateZ(50px);
+        }
+        
+        .btn-play {
+            margin-top: 60px; padding: 20px 80px; border: 1px solid var(--border-line);
+            background: transparent; color: #fff; font-family: 'JetBrains Mono';
+            letter-spacing: 8px; cursor: pointer; transition: 0.5s;
+            font-size: 12px; font-weight: 900; text-transform: uppercase;
+        }
+        .btn-play:hover { background: #fff; color: #000; border-color: #fff; transform: translateY(-5px); }
+
+        /* --- CONTENT --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 150px 6%; }
+        
+        .reveal { opacity: 0; transform: translateY(30px); transition: 1s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-label { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--meta-gray); letter-spacing: 4px; margin-bottom: 20px; display: block; text-transform: uppercase; }
+        .main-title { font-size: clamp(35px, 8vw, 75px); font-weight: 900; letter-spacing: -3px; line-height: 1; margin-bottom: 100px; text-transform: uppercase; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-bottom: 150px; }
+        .info-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 20px; letter-spacing: 2px; color: var(--meta-gray); text-transform: uppercase; }
+        .info-card p { font-size: 19px; color: var(--text-gray); font-weight: 400; }
+
+        /* --- SOCIALS --- */
+        .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border-line); border: 1px solid var(--border-line); }
+        .social-link { background: var(--bg); padding: 50px; display: flex; flex-direction: column; gap: 25px; transition: 0.4s; text-decoration: none; }
+        .social-link:hover { background: #080808; border-color: #fff; }
+        .social-link i { font-size: 30px; color: #fff; }
+        
+        /* FIX: Asegura que el logo de roblox no sea gigante */
+        .rbx-icon { width: 32px; height: 32px; object-fit: contain; }
+
+        .social-info b { display: block; font-size: 15px; color: #fff; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .social-info span { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--meta-gray); text-transform: uppercase; }
+
+        footer { padding: 100px 6% 50px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 10px; color: var(--meta-gray); border-top: 1px solid var(--border-line); }
+
+        @media (max-width: 768px) { .info-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="grid-layer"></div>
+    <div class="top-blur"></div>
+
+    <div id="loading-screen">
+        <img src="UNITZlogo.png" class="intro-brand">
+    </div>
+
+    <nav id="navbar">
+        <img src="UNITZlogo.png" class="nav-logo">
+        <div class="lang-switch" onclick="toggleLanguage()" id="langBtn">ES // EN</div>
+    </nav>
+
+    <section id="hero">
+        <div class="logo-3d-wrapper" id="logo3d">
+            <div class="glow-fx"></div>
+            <img src="OOF_SMASH_LOGO.png" class="hero-logo">
+        </div>
+        <a href="https://www.roblox.com/games/85038796594009" target="_blank" style="text-decoration: none;">
+            <button class="btn-play" id="playBtn">JUGAR</button>
+        </a>
+    </section>
+
+    <div class="container">
+        <div class="reveal">
+            <span class="section-label" id="labelVision">VISIÓN</span>
+            <h2 class="main-title" id="mainTitle">MECÁNICAS DE <br>ALTO NIVEL.</h2>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-card reveal">
+                <h3 id="h3Off">01 / ¿QUÉ ES OFF SMASH?</h3>
+                <p id="pOff">Es un juego de combate en plataforma inspirado en los grandes del género. El enfoque principal es la precisión, el control aéreo y el dominio de la arena bajo un sistema de físicas diseñado para la competición.</p>
+            </div>
+            <div class="info-card reveal">
+                <h3 id="h3Unit">02 / ¿QUÉ ES UNIT Z STUDIOS?</h3>
+                <p id="pUnit">Somos un equipo de desarrollo dedicado a crear proyectos de calidad. Unit Z funciona como un espacio de colaboración donde el aprendizaje y la creación de mecánicas sólidas son la prioridad.</p>
+            </div>
+        </div>
+
+        <div class="reveal">
+            <span class="section-label" id="labelSocial">COMUNIDAD</span>
+            <div class="social-grid">
+                <a href="https://www.roblox.com/groups/33768552/Unit-Z-Studios" target="_blank" class="social-link">
+                    <img src="robloxLOGO.png" class="rbx-icon">
+                    <div class="social-info">
+                        <b id="rbxTitle">GRUPO ROBLOX</b>
+                        <span id="rbxSub">ÚNETE AL EQUIPO</span>
+                    </div>
+                </a>
+                <a href="https://discord.gg/Ys7sakpKmk" target="_blank" class="social-link">
+                    <i class="fa-brands fa-discord"></i>
+                    <div class="social-info">
+                        <b id="dscTitle">DISCORD</b>
+                        <span id="dscSub">CENTRAL DE NOVEDADES</span>
+                    </div>
+                </a>
+                <a href="https://www.tiktok.com/@unitzstudios" target="_blank" class="social-link">
+                    <i class="fa-brands fa-tiktok"></i>
+                    <div class="social-info">
+                        <b id="tktTitle">TIKTOK</b>
+                        <span id="tktSub">CLIPS Y DESARROLLO</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <span>UNIT Z STUDIOS // 2026</span>
+        <span id="footDesc">DESARROLLO DE VIDEOJUEGOS</span>
+    </footer>
+
+    <script>
+        // --- TRADUCTOR ---
+        let currentLang = 'es';
+        const texts = {
+            es: {
+                play: "JUGAR", vision: "VISIÓN", title: "MECÁNICAS DE <br>ALTO NIVEL.",
+                q1: "01 / ¿QUÉ ES OFF SMASH?", a1: "Es un juego de combate en plataforma inspirado en los grandes del género. El enfoque principal es la precisión, el control aéreo y el dominio de la arena.",
+                q2: "02 / ¿QUÉ ES UNIT Z STUDIOS?", a2: "Somos un equipo de desarrollo dedicado a crear proyectos de calidad. Un espacio de colaboración donde el aprendizaje y la creación son la prioridad.",
+                comm: "COMUNIDAD", rTitle: "GRUPO ROBLOX", rSub: "ÚNETE AL EQUIPO", dTitle: "DISCORD", dSub: "CENTRAL DE NOVEDADES", tTitle: "TIKTOK", tSub: "CLIPS Y DESARROLLO", fDesc: "DESARROLLO DE VIDEOJUEGOS"
+            },
+            en: {
+                play: "PLAY", vision: "VISION", title: "HIGH LEVEL <br>MECHANICS.",
+                q1: "01 / WHAT IS OFF SMASH?", a1: "A platform combat game inspired by the genre's best. Focused on precision, aerial control, and arena mastery under a physics-based system.",
+                q2: "02 / WHAT IS UNIT Z STUDIOS?", a2: "A development team dedicated to quality projects. A collaborative space where learning and building solid mechanics are the priority.",
+                comm: "COMMUNITY", rTitle: "ROBLOX GROUP", rSub: "JOIN THE TEAM", dTitle: "DISCORD", dSub: "LATEST NEWS", tTitle: "TIKTOK", tSub: "CLIPS & DEVLOG", fDesc: "GAME DEVELOPMENT"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            const t = texts[currentLang];
+            document.getElementById('langBtn').innerText = currentLang.toUpperCase() + " // " + (currentLang === 'es' ? 'EN' : 'ES');
+            
+            document.getElementById('playBtn').innerText = t.play;
+            document.getElementById('labelVision').innerText = t.vision;
+            document.getElementById('mainTitle').innerHTML = t.title;
+            document.getElementById('h3Off').innerText = t.q1;
+            document.getElementById('pOff').innerText = t.a1;
+            document.getElementById('h3Unit').innerText = t.q2;
+            document.getElementById('pUnit').innerText = t.a2;
+            document.getElementById('labelSocial').innerText = t.comm;
+            document.getElementById('rbxTitle').innerText = t.rTitle;
+            document.getElementById('rbxSub').innerText = t.rSub;
+            document.getElementById('dscTitle').innerText = t.dTitle;
+            document.getElementById('dscSub').innerText = t.dSub;
+            document.getElementById('tktTitle').innerText = t.tTitle;
+            document.getElementById('tktSub').innerText = t.tSub;
+            document.getElementById('footDesc').innerText = t.fDesc;
+        }
+
+        // --- INTERFAZ ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const ls = document.getElementById('loading-screen');
+                ls.style.opacity = '0';
+                setTimeout(() => {
+                    ls.style.display = 'none';
+                    document.getElementById('navbar').classList.add('visible');
+                    document.body.style.overflowY = 'auto';
+                }, 1200);
+            }, 2000);
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // --- MOTOR 3D ---
+        const logo = document.getElementById('logo3d');
+        let cX = 0, cY = 0, tX = 0, tY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            const r = logo.getBoundingClientRect();
+            tX = ( (r.top + r.height/2) - e.clientY ) / 40;
+            tY = ( e.clientX - (r.left + r.width/2) ) / 40;
+        });
+
+        document.addEventListener('mouseleave', () => { tX = 0; tY = 0; });
+
+        function animate() {
+            cX += (tX - cX) * 0.1; 
+            cY += (tY - cY) * 0.1;
+            logo.style.transform = `rotateX(${cX}deg) rotateY(${cY}deg)`;
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
